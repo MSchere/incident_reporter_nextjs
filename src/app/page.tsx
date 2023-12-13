@@ -1,35 +1,69 @@
-import Link from "next/link";
+"use client";
+
+import { cn } from "$src/lib/utils";
+import { Label } from "@radix-ui/react-label";
+import { Link } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { buttonVariants } from "./components/ui/button";
+import { Textarea } from "./components/ui/textarea";
 
 export default function HomePage() {
+  const { data: session, status } = useSession();
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status !== "authenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-        <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-          Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-        </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/usage/first-steps"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">First Steps →</h3>
-            <div className="text-lg">
-              Just the basics - Everything you need to know to set up your
-              database and authentication.
+    <main className="flex flex-col items-center justify-center">
+      <div className="container relative hidden h-[800px] flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+        <Link
+          href="/login"
+          className={cn(
+            buttonVariants({ variant: "ghost" }),
+            "absolute right-4 top-4 md:right-8 md:top-8",
+          )}
+        >
+          Login
+        </Link>
+        <div className="container flex flex-col gap-20 px-4 py-8 md:px-24 md:py-16">
+          <div className="flex flex-col gap-8">
+            <h1 className="text-center text-5xl  font-extrabold tracking-tight text-white md:text-[5rem]">
+              <span className="text-teal">Incident</span> Reporter
+            </h1>
+            <p className="text-center text-2xl font-semibold md:text-xl">
+              Report <span className="text-coral">incidents</span> lightning
+              fast!
+            </p>
+          </div>
+          <div className="flex w-full flex-col gap-8">
+            <span className="text-center text-xl font-semibold md:text-xl">
+              {status === "authenticated" ? (
+                <>
+                  <span className="text-teal">Welcome back,</span>{" "}
+                  {session?.user?.name}
+                </>
+              ) : (
+                <>
+                  <span className="text-teal">Welcome!</span> Please sign in to
+                  continue.
+                </>
+              )}
+            </span>
+            <div className="grid w-full gap-1.5">
+              <Label htmlFor="message-2">Your Incident</Label>
+              <Textarea placeholder="Type your message here." id="message-2" />
+              <p className="text-muted-foreground text-sm">
+                Your report will be sent to the support team.
+              </p>
             </div>
-          </Link>
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/introduction"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Documentation →</h3>
-            <div className="text-lg">
-              Learn more about Create T3 App, the libraries it uses, and how to
-              deploy it.
-            </div>
-          </Link>
+          </div>
         </div>
       </div>
     </main>
