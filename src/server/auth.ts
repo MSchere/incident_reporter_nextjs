@@ -45,23 +45,22 @@ export const authOptions: NextAuthOptions = {
   },
   providers: [
     CredentialsProvider({
-            name: 'Credentials',
-            credentials: {
-                email: {label: "Email", type: "text", placeholder: "test@test.nl"},
-                password: {label: "Password", type: "password"}
-            },
-            async authorize(credentials, req) {
-                if (credentials) {
-                    return {id: "1", email: credentials.email}
-                }
-                // Return null if user data could not be retrieved
-                return null
-            }
-        })
+      name: "Credentials",
+      credentials: {
+        name: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials, req) {
+        if (credentials) {
+          return { id: "1", name: credentials.name };
+        }
+        // Return null if user data could not be retrieved
+        return null;
+      },
+    }),
   ],
   secret: env.NEXTAUTH_SECRET,
 };
-
 
 /**
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.

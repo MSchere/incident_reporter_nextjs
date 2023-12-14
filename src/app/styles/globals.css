@@ -1,39 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   @import url("./variables.css");
   * {
-      @apply border-border;
+    @apply border-border;
   }
   body {
-      @apply bg-background text-foreground;
+    @apply bg-background text-foreground;
   }
 }
 
 html,
 body {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    min-height: 100svh;
-    overflow: hidden auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 100svh;
+  overflow: hidden auto;
 }
 
 body {
-    color: hsl(var(--foreground));
-    font-family: "Work Sans, sans-serif";
-    font-size: 22px;
-    font-weight: 400;
-    font-feature-settings: "kern";
-    font-kerning: normal;
-    font-variant-ligatures: common-ligatures;
-    line-height: 1;
-    text-rendering: optimizelegibility;
-    background: hsl(var(--background));
-    scrollbar-color: hsl(var(--foreground)) transparent;
-    scrollbar-width: thin;
+  color: hsl(var(--foreground));
+  font-family: "Work Sans, sans-serif";
+  font-size: 22px;
+  font-weight: 400;
+  font-feature-settings: "kern";
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+  line-height: 1;
+  text-rendering: optimizelegibility;
+  background: hsl(var(--background));
+  scrollbar-color: hsl(var(--foreground)) transparent;
+  scrollbar-width: thin;
+}
+
+.shimmer {
+  width: 100%;
+  display: inline-block;
+  position: relative;
+  background: #3a3a3a;
+  background-image: linear-gradient(
+    to right,
+    #3a3a3a 0%,
+    #3f3f3f 10%,
+    #4a4a4a 20%,
+    #3f3f3f 30%,
+    #3a3a3a 50%,
+    #3a3a3a 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  animation: shimmer 0.8s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
 }
