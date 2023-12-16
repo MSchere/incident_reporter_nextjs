@@ -1,7 +1,7 @@
 import "$src/app/styles/globals.css";
 
 import { Inter } from "next/font/google";
-import { AuthProvider } from "./components/authProvider";
+import { AuthProvider } from "./components/AuthProvider";
 import { Toaster } from "./components/ui/toaster";
 
 const inter = Inter({

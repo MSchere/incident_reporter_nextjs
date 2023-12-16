@@ -9,3 +9,21 @@ export type SessionData = {
 export type Message = {
     message: string;
 }
+
+export enum IncidentStatus {
+    OPEN = "OPEN",
+    IN_PROGRESS = "IN_PROGRESS",
+    RESOLVED = "RESOLVED",
+    CLOSED = "CLOSED"
+}
+export type Incident = {
+    id: string;
+    title: string;
+    description: string;
+    status: IncidentStatus;
+    createdBy: string;
+    updatedBy: string;
+    createdAt: Date;
+    updatedAt: Date;
+
+}
