@@ -2,7 +2,7 @@
 
 *Report incidents, update them, and close them.*
 
-### Visit live site at [https://incident-reporter-nextjs.vercel.app/](https://incident-reporter-nextjs.vercel.app/)
+### Visit live site at [https://incident-reporter.vercel.app](https://incident-reporter.vercel.app)
 
 ## Stack
 

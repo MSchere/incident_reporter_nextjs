@@ -1,3 +1,4 @@
+import { env } from "./src/env.js";
 
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
@@ -12,7 +13,7 @@ const config = {
     return [
       {
         source: "/fastapi/:path*",
-        destination: "http://127.0.0.1:8000/:path*",
+        destination: `${env.NEXT_PUBLIC_API_URL}/:path*`,
       },
     ];
   },
