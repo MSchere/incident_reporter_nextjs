@@ -1,6 +1,6 @@
 "use client";
 
-import { IncidentStatus, type Incident } from "$src/lib/types";
+import { IncidentStatus, UserRole, type Incident } from "$src/lib/types";
 import { IncidentArraySchema } from "$src/lib/zod.schemas";
 import {
   flexRender,
@@ -14,8 +14,9 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { ArrowUpDown, Search } from "lucide-react";
-import { getCsrfToken } from "next-auth/react";
+import { getCsrfToken, useSession } from "next-auth/react";
 import { useEffect, useState, useTransition } from "react";
+import IncidentDialog from "./IncidentDialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import {
@@ -26,10 +27,10 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import { toast } from "./ui/use-toast";
 import Loading from "./utils/Loading";
 
 export default function IncidentsTable() {
+  const { data } = useSession();
   const [loading, setLoading] = useState(true);
   const [transition, startTransition] = useTransition();
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -60,27 +61,25 @@ export default function IncidentsTable() {
     startTransition(() => getFastApiResponse());
   }, []);
 
-  async function copyToClipBoard(value: string) {
-    await navigator.clipboard.writeText(value);
-    toast({
-      variant: "creative",
-      title: "Copied to clipboard",
-    });
-  }
-
   const rankingColumns: ColumnDef<Incident>[] = [
     {
       accessorKey: "id",
       header: "Incident ID",
       cell: ({ row }) => {
-        const id = row.original.id;
+        const incident = row.original;
+        const id = incident.id;
         return (
-          <button
-            className="max-w-[200px] cursor-pointer overflow-hidden text-ellipsis text-teal-400"
-            onClick={() => copyToClipBoard(id)}
+          <IncidentDialog
+            admin={
+              data?.user.name?.toUpperCase() === UserRole.ADMIN ||
+              data?.user.name === incident.createdBy
+            }
+            incidentToEdit={incident}
           >
-            {id}
-          </button>
+            <span className="inline-flex w-[200px] items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap rounded border border-input bg-background p-2 text-sm font-medium text-teal-400 ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+              {id}
+            </span>
+          </IncidentDialog>
         );
       },
     },
@@ -91,8 +90,17 @@ export default function IncidentsTable() {
     },
     {
       accessorKey: "createdBy",
-      header: "Created By",
-      cell: ({ row }) => <div>{row.original.createdBy}</div>,
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Created By
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },      cell: ({ row }) => <div className="ml-4">{row.original.createdBy}</div>,
     },
     {
       accessorKey: "createdAt",
@@ -115,11 +123,22 @@ export default function IncidentsTable() {
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Status
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
       cell: ({ row }) => {
         const status = row.original.status;
         return (
           <span
+            className="ml-4"
             style={
               status === IncidentStatus.OPEN
                 ? { color: "#E12222" }
@@ -153,21 +172,21 @@ export default function IncidentsTable() {
   });
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex w-screen flex-col md:w-full">
       <div className="flex flex-col gap-0 sm:flex-row sm:gap-4">
         <div className="relative flex items-center pb-4">
           <Search className="absolute left-4" width={16} height={16} />
           <Input
             placeholder="search incident..."
-            value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
+            value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("id")?.setFilterValue(event.target.value)
+              table.getColumn("title")?.setFilterValue(event.target.value)
             }
-            className="w-[220px] bg-muted pl-12 text-primary"
+            className="w-[220px] rounded pl-12 text-primary"
           />
         </div>
       </div>
-      <div className="border-t-2 lg:min-h-[580px]">
+      <div className="border-t-2 lg:min-h-[770px]">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -210,7 +229,7 @@ export default function IncidentsTable() {
                 <TableRow key={i}>
                   <TableCell
                     colSpan={rankingColumns.length}
-                    className="h-[53px] text-center"
+                    className="h-[71px]"
                   >
                     <Loading />
                   </TableCell>
@@ -235,6 +254,7 @@ export default function IncidentsTable() {
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
+          className="rounded"
         >
           Previous
         </Button>
@@ -243,6 +263,7 @@ export default function IncidentsTable() {
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
+          className="rounded"
         >
           Next
         </Button>

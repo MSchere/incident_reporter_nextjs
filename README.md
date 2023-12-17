@@ -1,28 +1,66 @@
-# Create T3 App
+# Incident reporter Next.js
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+*Report incidents, update them, and close them.*
 
-## What's next? How do I make an app with this?
+### Visit live site at [https://incident-reporter-nextjs.vercel.app/](https://incident-reporter-nextjs.vercel.app/)
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+## Stack
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- **Frontend**: Next.js, NextAuth, Tailwind CSS
+- **Backend**: FastAPI
+- **Database**:  Upstash (Redis)
+- **Deployment**: Vercel (frontend), Google App Engine (backend)
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Usage
+Place a .env file in the root directory with the following variables:
+```
+NEXTAUTH_SECRET="YOUR_SECRET"
+NEXTAUTH_URL="http://127.0.0.1:3000"
+NEXT_PUBLIC_API_URL="http://127.0.0.1:8000"
+```
+Install dependencies:
+```bash
+npm i
+```
+Run the development server:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Learn More
+Deploy to Vercel:
+```bash
+$ npm i -g vercel && vercel deploy
+```
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## API Reference
+### Create incident
+```http
+POST /fastapi/incident
+```
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `title` | `string` | **Required**. Incident title |
+| `description` | `string` | **Required**. Incident description |
+### Update incident
+```http
+PUT /fastapi/incident/${id}
+```
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `title` | `string` | **Required**. Incident title |
+| `description` | `string` | **Required**. Incident description |
+| `status` | `string` | **Required**. Incident status |
+### Delete incident
+```http
+DELETE /fastapi/incident/${id}
+```
+### Get incident
+```http
+GET /fastapi/incident/${id}
+```
+### Get all incidents
+```http
+GET /fastapi/incidents
+```
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
-
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
-
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.

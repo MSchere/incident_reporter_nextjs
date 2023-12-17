@@ -1,4 +1,5 @@
 import { env } from "$src/env";
+import { UserRole } from "$src/lib/types";
 import {
   getServerSession,
   type DefaultSession,
@@ -17,15 +18,13 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
+      role: UserRole;
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    role: UserRole;
+  }
 }
 
 /**
@@ -52,7 +51,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials, req) {
         if (credentials) {
-          return { id: "1", name: credentials.name };
+          return { id: "1", name: credentials.name, role: UserRole.USER };
         }
         // Return null if user data could not be retrieved
         return null;

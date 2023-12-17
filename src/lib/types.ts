@@ -25,5 +25,9 @@ export type Incident = {
     updatedBy: string;
     createdAt: Date;
     updatedAt: Date;
+}
 
+export enum UserRole {
+    USER = "USER",
+    ADMIN = "ADMIN"
 }

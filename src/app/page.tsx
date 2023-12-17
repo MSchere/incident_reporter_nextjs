@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
-import IncidentForm from "./components/IncidentForm";
+import IncidentDialog from "./components/IncidentDialog";
 import IncidentsTable from "./components/IncidentsTable";
 import { Button } from "./components/ui/button";
 import Loading from "./components/utils/Loading";
@@ -10,41 +10,42 @@ export default function HomePage() {
   const { status, data } = useSession({ required: true });
 
   return (
-    <main className="flex flex-col items-center justify-center">
-      <Button
-        variant="ghost"
-        className="absolute right-0 top-0 rounded font-bold"
-        onClick={() => signOut()}
-      >
-        Logout
-      </Button>
-      <div className="container flex flex-col items-center justify-center gap-20 px-4 py-8 md:px-24 md:py-16 ">
-        <div className="flex flex-col gap-8 ">
-          <h1 className="text-center text-5xl  font-extrabold tracking-tight text-white md:text-[5rem]">
-            <span className="text-red-500">Incident</span> Reporter
-          </h1>
-          <p className="text-center text-3xl font-semibold md:text-[2rem]">
-            Report incidents <span className="text-yellow-300">lightning</span>{" "}
-            fast!
-          </p>
-        </div>
-        <div className="flex max-w-full flex-col gap-20 lg:w-[800px]">
+    <main className="container flex flex-col items-center justify-center gap-20 px-4 py-8 md:px-24 md:py-16 ">
+        <div className="flex flex-col gap-16 border-slate relative rounded border-2 border-solid md:px-32 md:py-8">
+          <Button
+            variant="ghost"
+            className="absolute right-0 top-0 rounded font-bold"
+            onClick={() => signOut()}
+          >
+            Logout
+          </Button>
           <div className="flex flex-col gap-8">
-            <div className="flex justify-center text-center text-xl font-semibold">
-              {status === "authenticated" ? (
-                <span>
-                  Welcome back {data.user.name}!
-                </span>
-              ) : (
-                <div className="h-6 w-[377px]">
-                  <Loading />
-                </div>
-              )}
-            </div>
-            <IncidentForm />
+            <h1 className="text-center text-5xl  font-extrabold tracking-tight text-white md:text-[5rem]">
+              <span className="text-red-500">Incident</span> Reporter
+            </h1>
+            <p className="text-center text-3xl font-semibold md:text-[2rem]">
+              Report incidents <span className="text-yellow-300">lightning</span> fast!
+            </p>
           </div>
-          <IncidentsTable />
-        </div>
+          <div className="flex w-full flex-col gap-20 lg:w-[1080px]">
+            <div className="flex flex-col gap-8">
+              <div className="flex justify-center text-center text-xl font-semibold">
+                {status === "authenticated" ? (
+                  <span>Welcome back {data.user.name}!</span>
+                ) : (
+                  <div className="h-6 w-[377px]">
+                    <Loading />
+                  </div>
+                )}
+              </div>
+              <IncidentDialog admin={true}>
+                <span className="text-bold inline-flex w-[260px] items-center justify-center whitespace-nowrap rounded bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground ring-offset-background transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                  Report a new incident
+                </span>
+              </IncidentDialog>
+            </div>
+            <IncidentsTable />
+          </div>
       </div>
     </main>
   );
