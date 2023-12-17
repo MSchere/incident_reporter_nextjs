@@ -1,4 +1,4 @@
-# Incident reporter Next.js
+# Incident Reporter Next.js
 
 *Report incidents, update them, and close them.*
 
@@ -9,7 +9,7 @@
 - **Frontend**: Next.js, NextAuth, Tailwind CSS
 - **Backend**: FastAPI
 - **Database**:  Upstash (Redis)
-- **Deployment**: Vercel (frontend), Google App Engine (backend)
+- **Deployment**: Vercel (frontend), Render (backend)
 
 ## Usage
 Place a .env file in the root directory with the following variables:
