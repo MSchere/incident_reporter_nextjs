@@ -34,6 +34,7 @@ $ npm i -g vercel && vercel deploy
 ```
 
 ## API Reference
+You can also find the api reference at [https://incident-reporter-fatapi.onrender.com/docs](https://incident-reporter-fatapi.onrender.com/docs)
 ### Create incident
 ```http
 POST /fastapi/incident
