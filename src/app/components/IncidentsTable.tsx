@@ -163,7 +163,7 @@ export default function IncidentsTable() {
 
   return (
     <div className="flex w-screen flex-col md:w-full">
-      <div className="flex flex-col gap-0 sm:flex-row sm:gap-4">
+      <div className="flex flex-col px-4 gap-0 sm:flex-row sm:gap-4">
         <div className="relative flex items-center pb-4">
           <Search className="absolute left-4" width={16} height={16} />
           <Input
@@ -172,7 +172,7 @@ export default function IncidentsTable() {
             onChange={(event) =>
               table.getColumn("title")?.setFilterValue(event.target.value)
             }
-            className="w-[220px] rounded pl-12 text-primary"
+            className="w-[280px] rounded pl-12 text-primary"
           />
         </div>
       </div>
