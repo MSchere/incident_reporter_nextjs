@@ -1,13 +1,11 @@
 "use client";
 
+import { IncidentUtils } from "$src/lib/incidents.utils";
+import { refreshIncidents } from "$src/lib/signals";
 import { IncidentStatus, type Incident } from "$src/lib/types";
-import {
-  DescriptionSchema,
-  MessageSchema,
-  TitleSchema,
-} from "$src/lib/zod.schemas";
-import { getCsrfToken } from "next-auth/react";
+import { DescriptionSchema, TitleSchema } from "$src/lib/zod.schemas";
 import { useState, type FormEvent, type ReactNode } from "react";
+import { toast } from "../hooks/use-toast";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -26,7 +24,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { toast } from "./ui/use-toast";
+import Spinner from "./utils/Spinner";
 
 interface Props {
   admin?: boolean;
@@ -39,6 +37,8 @@ export default function IncidentDialog({
   incidentToEdit,
   children,
 }: Props) {
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(incidentToEdit?.title ?? "");
   const [description, setDescription] = useState(
     incidentToEdit?.description ?? "",
@@ -46,8 +46,7 @@ export default function IncidentDialog({
   const [status, setStatus] = useState<IncidentStatus | string>(
     incidentToEdit?.status ?? IncidentStatus.OPEN,
   );
-
-  async function onsubmit(e: FormEvent) {
+  async function onsubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
     const validatedTitle = TitleSchema.safeParse(title);
     if (!validatedTitle.success) {
@@ -66,118 +65,65 @@ export default function IncidentDialog({
       });
       return;
     }
-    const res = !!incidentToEdit
-      ? await updateIncident()
-      : await createIncident();
-    if (!res) {
+    setLoading(true);
+    const msg = !!incidentToEdit
+      ? await IncidentUtils.updateIncident(
+          incidentToEdit.id,
+          title,
+          description,
+          status as IncidentStatus,
+        )
+      : await IncidentUtils.createIncident(title, description);
+    if (!msg) {
+      toast({
+        variant: "destructive",
+        title: `Something went when ${
+          !!incidentToEdit ? "editing" : "submiting"
+        } your incident report`,
+      });
+      setLoading(false);
       return;
     }
-    const data = MessageSchema.parse(await res.json());
-    console.log(data);
-    location.reload();
-    // toast({
-    //   variant: "creative",
-    //   title: data.message,
-    // });
+    await refreshIncidents();
+    toast({
+      variant: "creative",
+      title: `Incident report ${
+        !!incidentToEdit ? "edited" : "submitted"
+      } successfully`,
+    });
+    setTitle("");
+    setDescription("");
+    setLoading(false);
+    setOpen(false);
   }
 
-  async function createIncident(): Promise<Response | undefined> {
-    try {
-      const csrfToken = await getCsrfToken();
-      if (!csrfToken) {
-        throw new Error("No CSRF token");
-      }
-
-      const body = JSON.stringify({
-        title,
-        description,
-      });
-
-      const res = await fetch("fastapi/incident", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-XSRF-Token": csrfToken,
-        },
-        body,
-      });
-      return res;
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went when creating your incident report",
-      });
-      return undefined;
+  async function deleteIncident(): Promise<void> {
+    console.log("deleteIncident", incidentToEdit);
+    if (!incidentToEdit) {
+      return;
     }
-  }
-
-  async function updateIncident(): Promise<Response | undefined> {
-    try {
-      if (!incidentToEdit) {
-        return undefined;
-      }
-
-      const csrfToken = await getCsrfToken();
-      if (!csrfToken) {
-        throw new Error("No CSRF token");
-      }
-
-      const body = JSON.stringify({
-        title,
-        description,
-        status,
-      });
-
-      const res = await fetch(`fastapi/incident/${incidentToEdit.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "X-XSRF-Token": csrfToken,
-        },
-        body,
-      });
-      return res;
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went when updating your incident report",
-      });
-      return undefined;
-    }
-  }
-
-  async function deleteIncident(): Promise<Response | undefined> {
-    try {
-      if (!incidentToEdit) {
-        return undefined;
-      }
-
-      const csrfToken = await getCsrfToken();
-      if (!csrfToken) {
-        throw new Error("No CSRF token");
-      }
-
-      const res = await fetch(`fastapi/incident/${incidentToEdit.id}`, {
-        method: "DELETE",
-        headers: {
-          "X-XSRF-Token": csrfToken,
-        },
-      });
-      return res;
-    } catch (error) {
-      console.error(error);
+    setLoading(true);
+    const res = await IncidentUtils.deleteIncident(incidentToEdit.id);
+    if (!res) {
       toast({
         variant: "destructive",
         title: "Something went when deleting your incident report",
       });
-      return undefined;
+      setLoading(false);
+      return;
     }
+    await refreshIncidents();
+    toast({
+      variant: "creative",
+      title: "Incident report deleted successfully",
+    });
+    setLoading(false);
+    setOpen(false);
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
+      { loading && <Spinner />}
       <DialogTrigger>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -191,7 +137,7 @@ export default function IncidentDialog({
           <DialogDescription>
             <form className="flex w-full flex-col gap-4" onSubmit={onsubmit}>
               <Input
-                disabled={!admin}
+                disabled={!admin || loading}
                 className="disabled:opacity-100"
                 id="title"
                 value={title}
@@ -199,7 +145,7 @@ export default function IncidentDialog({
                 placeholder="Title"
               />
               <Textarea
-                disabled={!admin}
+                disabled={!admin || loading}
                 className="h-32 rounded disabled:opacity-100"
                 placeholder="Type your message here."
                 id="description"
@@ -207,13 +153,13 @@ export default function IncidentDialog({
                 onChange={(e) => setDescription(e.target.value)}
               />
               <DropdownMenu>
-                <DropdownMenuTrigger disabled={!!!incidentToEdit || !admin}>
+                <DropdownMenuTrigger disabled={!!!incidentToEdit || !admin || loading}>
                   <Button
                     className="w-full rounded"
-                    disabled={!!!incidentToEdit || !admin}
+                    disabled={!!!incidentToEdit || !admin || loading}
                     variant="secondary"
                   >
-                    Status: {status}
+                    Status: {status.replace("_", " ")}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
@@ -238,13 +184,15 @@ export default function IncidentDialog({
               </DropdownMenu>
               {admin && (
                 <>
-                  <Button type="submit" className="rounded">
+                  <Button type="submit" className="rounded" disabled={loading}>
                     {!!incidentToEdit ? "Update incident" : "Submit incident"}
                   </Button>
                   {!!incidentToEdit && (
                     <Button
+                      type="button"
                       variant="destructive"
                       className="rounded"
+                      disabled={loading}
                       onClick={deleteIncident}
                     >
                       Delete incident

@@ -1,7 +1,7 @@
 "use client";
 
+import { incidentsSignal, refreshIncidents } from "$src/lib/signals";
 import { IncidentStatus, UserRole, type Incident } from "$src/lib/types";
-import { IncidentArraySchema } from "$src/lib/zod.schemas";
 import {
   flexRender,
   getCoreRowModel,
@@ -14,8 +14,9 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { ArrowUpDown, Search } from "lucide-react";
-import { getCsrfToken, useSession } from "next-auth/react";
-import { useEffect, useState, useTransition } from "react";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { useSignalState } from "../hooks/use-signal-state";
 import IncidentDialog from "./IncidentDialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -31,34 +32,22 @@ import Loading from "./utils/Loading";
 
 export default function IncidentsTable() {
   const { data } = useSession();
-  const [loading, setLoading] = useState(true);
-  const [transition, startTransition] = useTransition();
+  const [loading, setLoading] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const incidents = useSignalState(incidentsSignal);
+
 
   useEffect(() => {
-    setLoading(transition);
-  }, [transition]);
-
-  useEffect(() => {
-    const getFastApiResponse = async () => {
-      const csrfToken = await getCsrfToken();
-
-      if (!csrfToken) {
-        throw new Error("No CSRF token");
-      }
-
-      const res = await fetch("fastapi/incidents", {
-        method: "GET",
-        headers: {
-          "X-XSRF-Token": csrfToken,
-        },
-      });
-      const incidents = IncidentArraySchema.parse(await res.json());
-      setIncidents(incidents);
+    const fetchIncidents = async () => {
+      setLoading(true);
+      await refreshIncidents();
+      setLoading(false);
+      console.log("incidentsSignal", incidentsSignal.value);
     };
-    startTransition(() => getFastApiResponse());
+    fetchIncidents().catch((err) => {
+      console.error(err);
+    });
   }, []);
 
   const rankingColumns: ColumnDef<Incident>[] = [
@@ -100,7 +89,8 @@ export default function IncidentsTable() {
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
-      },      cell: ({ row }) => <div className="ml-4">{row.original.createdBy}</div>,
+      },
+      cell: ({ row }) => <div className="ml-4">{row.original.createdBy}</div>,
     },
     {
       accessorKey: "createdAt",
@@ -149,7 +139,7 @@ export default function IncidentsTable() {
                     : { color: "#27951D" }
             }
           >
-            {status}
+            {status.replace("_", " ")}
           </span>
         );
       },
@@ -224,8 +214,7 @@ export default function IncidentsTable() {
                 </TableRow>
               ))
             ) : loading ? (
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-              [...Array(10)].map((_, i) => (
+              Array.from({ length: 10 }, (_, i) => i).map((i) => (
                 <TableRow key={i}>
                   <TableCell
                     colSpan={rankingColumns.length}
@@ -244,11 +233,11 @@ export default function IncidentsTable() {
                   No results.
                 </TableCell>
               </TableRow>
-            )}
+            )} 
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-center md:justify-end space-x-2 py-4">
         <Button
           variant="outline"
           size="sm"
